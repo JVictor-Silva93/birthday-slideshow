@@ -4,6 +4,7 @@ import './Admin.css';
 
 export default function Admin() {
   const [slides, setSlides] = useState([]);
+  const [isLoaded, setIsLoaded] = useState(false);
   const [editingIndex, setEditingIndex] = useState(null);
   const [editCaption, setEditCaption] = useState('');
   const fileInputRef = useRef(null);
@@ -14,12 +15,15 @@ export default function Admin() {
     if (savedSlides) {
       setSlides(JSON.parse(savedSlides));
     }
+    setIsLoaded(true);
   }, []);
 
-  // Save slides to localStorage whenever they change
+  // Save slides to localStorage whenever they change (only after initial load)
   useEffect(() => {
-    localStorage.setItem('birthdaySlides', JSON.stringify(slides));
-  }, [slides]);
+    if (isLoaded) {
+      localStorage.setItem('birthdaySlides', JSON.stringify(slides));
+    }
+  }, [slides, isLoaded]);
 
   const handleFileUpload = (e) => {
     const files = Array.from(e.target.files);
@@ -32,7 +36,7 @@ export default function Admin() {
         const newSlide = {
           id: Date.now() + Math.random(),
           image: event.target.result, // base64 string
-          caption: 'Add a caption...'
+          caption: ''
         };
         setSlides((prev) => [...prev, newSlide]);
       };
@@ -155,7 +159,7 @@ export default function Admin() {
                       </div>
                     ) : (
                       <p className="slide-caption" onClick={() => startEditing(index)}>
-                        {slide.caption}
+                        {slide.caption || <span className="caption-placeholder">Add a caption...</span>}
                         <span className="edit-hint">Click to edit</span>
                       </p>
                     )}
