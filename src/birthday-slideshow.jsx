@@ -2,6 +2,39 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import './birthday-slideshow.css';
 
+// ============================================
+// ADD YOUR IMAGE FILENAMES HERE
+// (Keep this in sync with Admin.jsx)
+// ============================================
+const imageFiles = [
+  "baby_caleb.png",
+  "bap_ghibli.png",
+  "beach.png",
+  "birth.jpeg",
+  "boba.png",
+  "cats_connection.png",
+  "fun_christmas.png",
+  "ghibli_gun.png",
+  "ghibli_gun2.png",
+  "ghibli_gun3.png",
+  "grandparents.png",
+  "joyride.png",
+  "lol.jpeg",
+  "nurse1.png",
+  "nurse2.png",
+  "picanha.png",
+  "proposal2.png",
+  "rings.png",
+  "surprised.png",
+  "tacos_premarital.png",
+  "ultrasound_pic.png",
+  "us_three.png",
+  "wedding_meal.png",
+  "'wedding and cat america.png'",
+  "weddingpic_ghibli.png",
+  "wrestling_party.png",
+];
+
 const PlayIcon = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
     <path d="M8 5v14l11-7z"/>
@@ -33,17 +66,35 @@ const HeartIcon = () => (
 );
 
 export default function BirthdaySlideshow() {
-  const [slides, setSlides] = useState([]);
+  const [captions, setCaptions] = useState({});
+  const [order, setOrder] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
 
-  // Load slides from localStorage on mount
+  // Build slides from ordered image files + saved captions
+  const slides = order.map((filename) => ({
+    image: `/slides/${filename}`,
+    caption: captions[filename] || ''
+  }));
+
+  // Load captions and order from localStorage on mount
   useEffect(() => {
-    const savedSlides = localStorage.getItem('birthdaySlides');
-    if (savedSlides) {
-      setSlides(JSON.parse(savedSlides));
+    const savedCaptions = localStorage.getItem('birthdayCaptions');
+    const savedOrder = localStorage.getItem('birthdayOrder');
+
+    if (savedCaptions) {
+      setCaptions(JSON.parse(savedCaptions));
+    }
+
+    if (savedOrder) {
+      const parsedOrder = JSON.parse(savedOrder);
+      const validOrder = parsedOrder.filter(f => imageFiles.includes(f));
+      const newFiles = imageFiles.filter(f => !validOrder.includes(f));
+      setOrder([...validOrder, ...newFiles]);
+    } else {
+      setOrder(imageFiles);
     }
   }, []);
 
@@ -110,8 +161,8 @@ export default function BirthdaySlideshow() {
     opacity: 0.15 + Math.random() * 0.15
   }));
 
-  // Empty state - no slides yet
-  if (slides.length === 0) {
+  // Empty state - no images configured
+  if (order.length === 0) {
     return (
       <div className="slideshow-container">
         <div className="hearts-container">
@@ -133,8 +184,8 @@ export default function BirthdaySlideshow() {
         </div>
         <div className="content">
           <div className="empty-state">
-            <h2>No slides yet!</h2>
-            <p>Add some beautiful photos to get started.</p>
+            <h2>No images configured!</h2>
+            <p>Add image filenames to the imageFiles array.</p>
             <Link to="/admin" className="admin-link">
               Go to Admin Panel
             </Link>

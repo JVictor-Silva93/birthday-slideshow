@@ -1,57 +1,84 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import './Admin.css';
 
+// ============================================
+// ADD YOUR IMAGE FILENAMES HERE
+// Place your images in: public/slides/
+// ============================================
+const imageFiles = [
+  "baby_caleb.png",
+  "bap_ghibli.png",
+  "beach.png",
+  "birth.jpeg",
+  "boba.png",
+  "cats_connection.png",
+  "fun_christmas.png",
+  "ghibli_gun.png",
+  "ghibli_gun2.png",
+  "ghibli_gun3.png",
+  "grandparents.png",
+  "joyride.png",
+  "lol.jpeg",
+  "nurse1.png",
+  "nurse2.png",
+  "picanha.png",
+  "proposal2.png",
+  "rings.png",
+  "surprised.png",
+  "tacos_premarital.png",
+  "ultrasound_pic.png",
+  "us_three.png",
+  "wedding_meal.png",
+  "'wedding and cat america.png'",
+  "weddingpic_ghibli.png",
+  "wrestling_party.png",
+];
+
 export default function Admin() {
-  const [slides, setSlides] = useState([]);
+  const [captions, setCaptions] = useState({});
+  const [order, setOrder] = useState([]);
   const [isLoaded, setIsLoaded] = useState(false);
   const [editingIndex, setEditingIndex] = useState(null);
   const [editCaption, setEditCaption] = useState('');
-  const fileInputRef = useRef(null);
 
-  // Load slides from localStorage on mount
+  // Load captions and order from localStorage on mount
   useEffect(() => {
-    const savedSlides = localStorage.getItem('birthdaySlides');
-    if (savedSlides) {
-      setSlides(JSON.parse(savedSlides));
+    const savedCaptions = localStorage.getItem('birthdayCaptions');
+    const savedOrder = localStorage.getItem('birthdayOrder');
+
+    if (savedCaptions) {
+      setCaptions(JSON.parse(savedCaptions));
     }
+
+    if (savedOrder) {
+      // Use saved order, but add any new files and remove deleted ones
+      const parsedOrder = JSON.parse(savedOrder);
+      const validOrder = parsedOrder.filter(f => imageFiles.includes(f));
+      const newFiles = imageFiles.filter(f => !validOrder.includes(f));
+      setOrder([...validOrder, ...newFiles]);
+    } else {
+      setOrder(imageFiles);
+    }
+
     setIsLoaded(true);
   }, []);
 
-  // Save slides to localStorage whenever they change (only after initial load)
+  // Save captions and order to localStorage whenever they change
   useEffect(() => {
     if (isLoaded) {
-      localStorage.setItem('birthdaySlides', JSON.stringify(slides));
+      localStorage.setItem('birthdayCaptions', JSON.stringify(captions));
+      localStorage.setItem('birthdayOrder', JSON.stringify(order));
     }
-  }, [slides, isLoaded]);
+  }, [captions, order, isLoaded]);
 
-  const handleFileUpload = (e) => {
-    const files = Array.from(e.target.files);
-
-    files.forEach((file) => {
-      if (!file.type.startsWith('image/')) return;
-
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const newSlide = {
-          id: Date.now() + Math.random(),
-          image: event.target.result, // base64 string
-          caption: ''
-        };
-        setSlides((prev) => [...prev, newSlide]);
-      };
-      reader.readAsDataURL(file);
-    });
-
-    // Reset input so same file can be uploaded again if needed
-    e.target.value = '';
-  };
-
-  const deleteSlide = (index) => {
-    if (window.confirm('Are you sure you want to delete this slide?')) {
-      setSlides((prev) => prev.filter((_, i) => i !== index));
-    }
-  };
+  // Build slides from ordered image files + saved captions
+  const slides = order.map((filename, index) => ({
+    id: index,
+    image: `/slides/${filename}`,
+    filename: filename,
+    caption: captions[filename] || ''
+  }));
 
   const startEditing = (index) => {
     setEditingIndex(index);
@@ -60,11 +87,11 @@ export default function Admin() {
 
   const saveCaption = () => {
     if (editingIndex !== null) {
-      setSlides((prev) =>
-        prev.map((slide, i) =>
-          i === editingIndex ? { ...slide, caption: editCaption } : slide
-        )
-      );
+      const filename = slides[editingIndex].filename;
+      setCaptions((prev) => ({
+        ...prev,
+        [filename]: editCaption
+      }));
       setEditingIndex(null);
       setEditCaption('');
     }
@@ -77,17 +104,11 @@ export default function Admin() {
 
   const moveSlide = (index, direction) => {
     const newIndex = index + direction;
-    if (newIndex < 0 || newIndex >= slides.length) return;
+    if (newIndex < 0 || newIndex >= order.length) return;
 
-    const newSlides = [...slides];
-    [newSlides[index], newSlides[newIndex]] = [newSlides[newIndex], newSlides[index]];
-    setSlides(newSlides);
-  };
-
-  const clearAllSlides = () => {
-    if (window.confirm('Are you sure you want to delete ALL slides? This cannot be undone.')) {
-      setSlides([]);
-    }
+    const newOrder = [...order];
+    [newOrder[index], newOrder[newIndex]] = [newOrder[newIndex], newOrder[index]];
+    setOrder(newOrder);
   };
 
   return (
@@ -101,26 +122,14 @@ export default function Admin() {
           </Link>
         </div>
 
-        {/* Upload Section */}
-        <div className="upload-section">
-          <input
-            type="file"
-            accept="image/*"
-            multiple
-            onChange={handleFileUpload}
-            ref={fileInputRef}
-            className="file-input"
-            id="file-upload"
-          />
-          <label htmlFor="file-upload" className="upload-button">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-              <polyline points="17 8 12 3 7 8"/>
-              <line x1="12" y1="3" x2="12" y2="15"/>
-            </svg>
-            Upload Photos
-          </label>
-          <p className="upload-hint">Click or drag photos to upload. You can select multiple at once.</p>
+        {/* Instructions */}
+        <div className="instructions-box">
+          <h3>📁 How to add images:</h3>
+          <ol>
+            <li>Place your images in the <code>public/slides/</code> folder</li>
+            <li>Add the filenames to the <code>imageFiles</code> array in <code>Admin.jsx</code> and <code>birthday-slideshow.jsx</code></li>
+            <li>Refresh this page and add your captions below</li>
+          </ol>
         </div>
 
         {/* Slides List */}
@@ -128,21 +137,19 @@ export default function Admin() {
           <>
             <div className="slides-header">
               <h2 className="slides-title">{slides.length} Slide{slides.length !== 1 ? 's' : ''}</h2>
-              <button onClick={clearAllSlides} className="clear-all-button">
-                Clear All
-              </button>
             </div>
 
             <div className="slides-list">
               {slides.map((slide, index) => (
-                <div key={slide.id} className="slide-card">
+                <div key={slide.filename} className="slide-card">
                   <div className="slide-number">{index + 1}</div>
 
                   <div className="slide-image-wrapper">
-                    <img src={slide.image} alt={slide.caption} className="slide-thumbnail" />
+                    <img src={slide.image} alt={slide.caption || slide.filename} className="slide-thumbnail" />
                   </div>
 
                   <div className="slide-details">
+                    <div className="slide-filename">{slide.filename}</div>
                     {editingIndex === index ? (
                       <div className="caption-edit">
                         <textarea
@@ -182,13 +189,6 @@ export default function Admin() {
                     >
                       ↓
                     </button>
-                    <button
-                      onClick={() => deleteSlide(index)}
-                      className="delete-button"
-                      title="Delete slide"
-                    >
-                      ×
-                    </button>
                   </div>
                 </div>
               ))}
@@ -196,13 +196,13 @@ export default function Admin() {
           </>
         ) : (
           <div className="empty-slides">
-            <p>No slides yet. Upload some photos to get started!</p>
+            <p>No images found. Add some filenames to the <code>imageFiles</code> array in Admin.jsx!</p>
           </div>
         )}
 
         {/* Footer */}
         <div className="admin-footer">
-          <p>💡 Tip: Images are stored in your browser. They'll persist until you clear your browser data.</p>
+          <p>💡 Tip: Captions and order are saved in your browser. Images are loaded from your public/slides/ folder.</p>
         </div>
       </div>
     </div>

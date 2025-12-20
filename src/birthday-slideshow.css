@@ -35,22 +35,28 @@
 html, body, #root {
   margin: 0;
   padding: 0;
-  height: 100%;
+  min-height: 100%;
+}
+
+/* Lock scrolling only on slideshow page */
+.slideshow-container {
+  height: 100vh;
   overflow: hidden;
 }
 
 /* Container */
 .slideshow-container {
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
   background: linear-gradient(135deg, #fdf6f8 0%, #f8e8ed 25%, #fdf2f5 50%, #f5e6eb 75%, #fdf6f8 100%);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 40px 20px;
+  padding: 20px;
   position: relative;
-  overflow: hidden;
   font-family: "Quicksand", sans-serif;
+  box-sizing: border-box;
 }
 
 /* Floating Hearts */
@@ -126,8 +132,8 @@ html, body, #root {
 
 .image-container {
   position: relative;
-  width: clamp(300px, 75vw, 800px);
-  height: clamp(225px, 50vw, 500px);
+  width: clamp(280px, 70vw, 800px);
+  height: clamp(180px, 40vh, 500px);
   border-radius: 8px;
   overflow: hidden;
   background-color: #f8e8ed;
@@ -136,7 +142,7 @@ html, body, #root {
 .slide-image {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   transition: opacity 0.4s ease, transform 0.4s ease;
 }
 
