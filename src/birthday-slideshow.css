@@ -25,25 +25,6 @@
   50% { transform: scale(1.05); }
 }
 
-/* Base */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-html, body, #root {
-  margin: 0;
-  padding: 0;
-  min-height: 100%;
-}
-
-/* Lock scrolling only on slideshow page */
-.slideshow-container {
-  height: 100vh;
-  overflow: hidden;
-}
-
 /* Container */
 .slideshow-container {
   height: 100vh;

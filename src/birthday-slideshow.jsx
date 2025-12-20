@@ -30,7 +30,7 @@ const imageFiles = [
   "ultrasound_pic.png",
   "us_three.png",
   "wedding_meal.png",
-  "'wedding and cat america.png'",
+  "wedding_and_cat_america.png",
   "weddingpic_ghibli.png",
   "wrestling_party.png",
 ];
